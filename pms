@@ -1,0 +1,141 @@
+#include <iostream>
+#include <fstream>
+#include <ctime>
+#include <string>
+
+using namespace std;
+
+struct Vehicle {
+    string regNo;
+    string driverName;
+    string make;
+    string model;
+    string color;
+    time_t entryTime;
+    Vehicle *nptr; 
+};
+
+Vehicle *head = NULL;
+int totalFeeCollected = 0;
+
+int main() {
+	fstream file;
+	file.open("parking.txt",ios::in);
+                if(!file)
+                {
+                	cout<<"No Existing Data Found";
+				}
+				else{
+					cout<<"Existing Data has been loaded";
+					while(!file.eof())
+					{	Vehicle *ptr=new Vehicle;
+						string temp;
+						file>>ptr->regNo;
+						file>>ptr->driverName;
+						file>>ptr->make;
+						file>>ptr->model;
+						file>>ptr->entryTime;
+						file>>temp;
+						ptr->nptr = head;
+                		head = ptr;
+					}
+				}
+    int option = 0;
+    while (option != 5) {
+        cout << "\n=========================================\nPlease select an option:" << endl;
+        cout << "1. Vehicle Entry" << endl;
+        cout << "2. Vehicle Exit" << endl;
+        cout << "3. Parking Fee Collected" << endl;
+        cout << "4. Parking Statistics" << endl;
+        cout << "5. Exit" << endl;
+        cin >> option;
+
+        switch (option) {
+            case 1: {
+                Vehicle *newVehicle = new Vehicle();
+                cout << "Enter Vehicle Registration Number: ";
+                cin >> newVehicle->regNo;
+                cout << "Enter Driver Name: ";
+                cin >> newVehicle->driverName;
+                cout << "Enter Vehicle Make: ";
+                cin >> newVehicle->make;
+                cout << "Enter Vehicle Model: ";
+                cin >> newVehicle->model;
+                cout << "Enter Vehicle Color (White, Black, Red, Grey): ";
+                cin >> newVehicle->color;
+                newVehicle->entryTime = time(NULL);
+                newVehicle->nptr = head;
+                head = newVehicle;
+                break;
+            }
+            case 2: {
+                string regNo;
+                cout << "Enter Vehicle Registration Number: ";
+                cin >> regNo;
+                Vehicle *currentVehicle = head;
+                Vehicle *previousVehicle = NULL;
+                while (currentVehicle != NULL && currentVehicle->regNo != regNo) {
+                    previousVehicle = currentVehicle;
+                    currentVehicle = currentVehicle->nptr;
+                }
+                if (currentVehicle == NULL) {
+                    cout << "No vehicle in record of this Registration Number" << endl;
+                } else {
+                    time_t exitTime = time(NULL);
+                    int fee = difftime(exitTime, currentVehicle->entryTime) < 60 ? 50 : 70;
+                    totalFeeCollected += fee;
+                    cout << "Collect " << fee << " Rupees Amount from Car Reg No. " << currentVehicle->regNo << endl;
+                    if (previousVehicle == NULL) {
+                        head = currentVehicle->nptr;
+                    } else {
+                        previousVehicle->nptr = currentVehicle->nptr;
+                    }
+                    delete currentVehicle;
+                }
+                break;
+            }
+            case 3: {
+                cout << "Total Parking Fee Collected: " << totalFeeCollected << endl;
+                break;
+            }
+            case 4: {
+                cout << "Vehicles currently parked:" << endl;
+                Vehicle *currentVehicle = head;
+                while (currentVehicle != NULL) {
+                    cout <<"Reg no: "<<currentVehicle->regNo << endl;
+                    cout << currentVehicle->make << endl;
+                    cout << currentVehicle->model << endl;
+                    cout << currentVehicle->entryTime << endl;
+                    currentVehicle = currentVehicle->nptr;
+                }
+                break;
+            }
+            case 5: {
+                cout << "Exiting program..." << endl;
+                file.open("parking.txt",ios::out);
+                if(!file)
+                {
+                	cout<<"File not created";
+				}
+				else{
+					Vehicle *rptr=head;
+					while(rptr!=NULL)
+					{
+						file<<rptr->regNo<<endl;
+						file<<rptr->driverName<<endl;
+						file<<rptr->make<<endl;
+						file<<rptr->model<<endl;
+						file<<rptr->entryTime<<endl;
+						rptr=rptr->nptr;
+					}
+                break;
+            }
+            default: {
+                cout << "Invalid option selected. Please try again." << endl;
+				}
+                break;
+            }
+        }
+    }
+    return 0;
+}
